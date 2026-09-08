@@ -350,7 +350,9 @@ function renderBoard(status: DisplayStatus): void {
     const file = square % 5
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
-    const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
+    const isCheck = status.type === "ongoing"
+      && piece?.type === "king"
+      && isInCheck(position, piece.color)
     const isSelectable = !choosingSide
       && !thinking
       && status.type === "ongoing"
@@ -421,7 +423,10 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
   if (status.type !== "ongoing") {
     turnCallout.classList.add("turn-callout--result")
     const { heading, detail } = resultCopy(status)
-    turnCallout.innerHTML = `<span class="result-icon" aria-hidden="true">✦</span><div><strong>${heading}</strong><small>${detail}</small></div>`
+    const italicClass = status.type === "checkmate" && status.winner !== humanColor
+      ? "result-heading--italic"
+      : ""
+    turnCallout.innerHTML = `<div><strong class="${italicClass}">${heading}</strong>${detail ? `<small>${detail}</small>` : ""}</div>`
     return
   }
 
@@ -461,7 +466,7 @@ function resultCopy(status: Exclude<DisplayStatus, { type: "ongoing" }>): { head
   }
   return {
     heading: didHumanWin ? "Checkmate—you win" : "Checkmate—the house wins",
-    detail: `${capitalize(status.winner)} closes the round.`,
+    detail: "",
   }
 }
 

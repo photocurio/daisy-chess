@@ -442,9 +442,8 @@ p {
   background: #3f6f91;
 }
 
-.result-icon {
-  color: var(--brand-red);
-  font-size: 1.1rem;
+.result-heading--italic {
+  font-style: italic;
 }
 
 .turn-callout strong,
