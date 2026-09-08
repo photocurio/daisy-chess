@@ -103,14 +103,12 @@ app.innerHTML = `
 
     <section class="play-layout" aria-label="Barroom Brawl game">
       <div class="board-stage">
-        <p class="player-strip player-strip--opponent" id="opponent-strip">House plays dark pieces</p>
         <div class="board-wrap">
           <div class="board" id="board" role="grid" aria-label="Barroom Brawl board"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
         </div>
-        <p class="player-strip" id="player-strip">You play light pieces</p>
       </div>
 
       <aside class="match-panel">
@@ -164,8 +162,6 @@ const turnCallout = requireElement<HTMLDivElement>("turn-callout")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
 const sideChoice = requireElement<HTMLDivElement>("side-choice")
 const gameControls = requireElement<HTMLDivElement>("game-controls")
-const opponentStrip = requireElement<HTMLParagraphElement>("opponent-strip")
-const playerStrip = requireElement<HTMLParagraphElement>("player-strip")
 const rulesButton = requireElement<HTMLButtonElement>("rules-button")
 const rulesCard = requireElement<HTMLElement>("rules-card")
 const promotionDialog = requireElement<HTMLDialogElement>("promotion-dialog")
@@ -324,7 +320,6 @@ function showPromotionChoices(moves: Move[]): void {
 
 function render(errorMessage?: string): void {
   const status = displayStatus()
-  renderPlayerStrips()
   renderBoard(status)
   renderTurn(status, errorMessage)
   sideChoice.hidden = !choosingSide
@@ -333,12 +328,6 @@ function render(errorMessage?: string): void {
 
   thinkingElement.classList.toggle("is-visible", thinking)
   thinkingElement.setAttribute("aria-hidden", String(!thinking))
-}
-
-function renderPlayerStrips(): void {
-  const houseColor: Color = humanColor === "light" ? "dark" : "light"
-  opponentStrip.textContent = `House plays ${houseColor} pieces`
-  playerStrip.textContent = `You play ${humanColor} pieces`
 }
 
 function renderBoard(status: DisplayStatus): void {

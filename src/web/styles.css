@@ -84,7 +84,8 @@ a:focus-visible {
 
 .game-title strong {
   display: block;
-  font-size: 1.08rem;
+  color: var(--brand-red);
+  font-size: 1.36rem;
   font-weight: 900;
   letter-spacing: -0.025em;
   line-height: 1;
@@ -139,22 +140,6 @@ a:focus-visible {
 
 .board-stage {
   width: 100%;
-}
-
-.player-strip {
-  display: block;
-  min-height: 44px;
-  width: 100%;
-  margin: 0;
-  padding: 14px 2px 8px;
-  color: #444444;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.player-strip--opponent {
-  padding: 8px 2px 14px;
-  margin-bottom: 3px;
 }
 
 .board-wrap {
@@ -613,18 +598,32 @@ p {
 .side-options button {
   min-height: 52px;
   padding: 10px;
-  border: 1px solid var(--brand-red-dark);
+  border: 2px solid var(--brand-red);
   border-radius: 0;
-  color: #ffffff;
-  background: var(--brand-red);
   cursor: pointer;
   font-size: 0.84rem;
   font-weight: 900;
   transition: background-color 180ms ease, transform 180ms ease;
 }
 
-.side-options button:hover {
-  background: var(--brand-red-dark);
+.side-options button[data-side-choice="light"] {
+  color: var(--brand-red);
+  background: #ffffff;
+}
+
+.side-options button[data-side-choice="light"]:hover {
+  background: #fff1f2;
+  transform: translateY(-1px);
+}
+
+.side-options button[data-side-choice="dark"] {
+  border-color: var(--ink);
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.side-options button[data-side-choice="dark"]:hover {
+  background: #333333;
   transform: translateY(-1px);
 }
 
