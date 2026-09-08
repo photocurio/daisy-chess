@@ -142,18 +142,6 @@ app.innerHTML = `
             <div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>
           </div>
 
-          <div class="evaluation" aria-label="Position evaluation">
-            <div class="evaluation-labels"><span>Dark</span><strong id="evaluation-text">Even</strong><span>Light</span></div>
-            <div class="evaluation-track"><span class="evaluation-marker" id="evaluation-marker"></span></div>
-          </div>
-
-          <div class="move-section">
-            <div class="section-heading"><h2>Moves</h2><span id="move-count">Opening position</span></div>
-            <div class="move-list" id="move-list">
-              <p class="empty-moves">The first round is yours.</p>
-            </div>
-          </div>
-
           <div class="match-actions">
             <button class="primary-button" id="new-game" type="button">New round <span aria-hidden="true">↻</span></button>
             <button class="secondary-button" id="undo" type="button" disabled>Take back</button>
@@ -197,10 +185,6 @@ const opponentStrip = requireElement<HTMLDivElement>("opponent-strip")
 const playerStrip = requireElement<HTMLDivElement>("player-strip")
 const turnCallout = requireElement<HTMLDivElement>("turn-callout")
 const formationBadge = requireElement<HTMLSpanElement>("formation-badge")
-const evaluationText = requireElement<HTMLElement>("evaluation-text")
-const evaluationMarker = requireElement<HTMLSpanElement>("evaluation-marker")
-const moveList = requireElement<HTMLDivElement>("move-list")
-const moveCount = requireElement<HTMLSpanElement>("move-count")
 const undoButton = requireElement<HTMLButtonElement>("undo")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
 const strengthSelect = requireElement<HTMLSelectElement>("engine-strength")
@@ -220,8 +204,6 @@ let history: HistoryEntry[] = []
 let snapshots: Position[] = []
 let thinking = false
 let engineRequestId = 0
-let evaluationForLight = 0
-let engineMeta: Pick<EngineResult, "depth" | "nodes" | "elapsedMs"> | null = null
 
 newGame()
 registerWebMcpTools()
@@ -251,14 +233,11 @@ engine.addEventListener("message", (event: MessageEvent<EngineResponse>) => {
 
   thinking = false
   if (response.type === "error" || !response.result) {
-    engineMeta = null
     render(`Engine paused: ${response.message ?? "unknown error"}`)
     return
   }
 
   const result = response.result
-  engineMeta = result
-  evaluationForLight = result.score * (position.turn === "light" ? 1 : -1)
 
   if (result.move) {
     applyGameMove(result.move)
@@ -281,8 +260,6 @@ function newGame(): void {
   history = []
   snapshots = [position]
   thinking = false
-  evaluationForLight = 0
-  engineMeta = null
   render()
 
   if (position.turn !== humanColor) window.setTimeout(requestEngineMove, 350)
@@ -344,8 +321,6 @@ function takeBack(): void {
   history = history.slice(0, target)
   lastMove = history.at(-1)?.move ?? null
   selectedSquare = null
-  evaluationForLight = 0
-  engineMeta = null
   render()
 }
 
@@ -389,8 +364,6 @@ function render(errorMessage?: string): void {
   renderBoard(status)
   renderPlayerStrips()
   renderTurn(status, errorMessage)
-  renderHistory()
-  renderEvaluation()
 
   formationBadge.textContent = `SET · ${formationId}`
   thinkingElement.classList.toggle("is-visible", thinking)
@@ -498,53 +471,6 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
   }
 }
 
-function renderHistory(): void {
-  moveCount.textContent = history.length === 0
-    ? "Opening position"
-    : `${history.length} ${history.length === 1 ? "move" : "moves"}`
-
-  if (history.length === 0) {
-    moveList.innerHTML = '<p class="empty-moves">The first round is yours.</p>'
-    return
-  }
-
-  const rows: string[] = []
-  for (let index = 0; index < history.length; index += 2) {
-    const first = history[index]
-    const second = history[index + 1]
-    rows.push(`
-      <div class="move-row">
-        <span>${Math.floor(index / 2) + 1}</span>
-        <strong>${first ? prettyMove(first.move, first.captured) : "—"}</strong>
-        <strong>${second ? prettyMove(second.move, second.captured) : '<i class="move-pending">…</i>'}</strong>
-      </div>
-    `)
-  }
-  moveList.innerHTML = rows.join("")
-  moveList.scrollTop = moveList.scrollHeight
-}
-
-function renderEvaluation(): void {
-  const boundedScore = Math.max(-900, Math.min(900, evaluationForLight))
-  const markerPosition = 50 + (boundedScore / 900) * 46
-  evaluationMarker.style.left = `${markerPosition}%`
-
-  if (Math.abs(evaluationForLight) >= 99_000) {
-    evaluationText.textContent = evaluationForLight > 0 ? "Light has mate" : "Dark has mate"
-  } else if (Math.abs(evaluationForLight) < 15) {
-    evaluationText.textContent = "Even"
-  } else {
-    const favored = evaluationForLight > 0 ? "Light" : "Dark"
-    evaluationText.textContent = `${favored} +${(Math.abs(evaluationForLight) / 100).toFixed(1)}`
-  }
-
-  if (engineMeta) {
-    evaluationText.title = `Depth ${engineMeta.depth} · ${engineMeta.nodes.toLocaleString()} positions · ${Math.round(engineMeta.elapsedMs)} ms`
-  } else {
-    evaluationText.removeAttribute("title")
-  }
-}
-
 function displayStatus(): DisplayStatus {
   const status = gameStatus(position)
   if (status.type !== "ongoing") return status
@@ -591,14 +517,6 @@ function boardOrder(): number[] {
     const rankDiff = Math.floor(left / 5) - Math.floor(right / 5)
     return rankDiff || (right % 5) - (left % 5)
   })
-}
-
-function prettyMove(move: Move, captured: Piece | null): string {
-  const movingPiece = snapshots[history.findIndex((entry) => entry.move === move)]?.board[move.from]
-  const token = movingPiece?.type === "pawn" ? "" : movingPiece ? PIECE_GLYPH[movingPiece.color][movingPiece.type] : ""
-  const separator = captured ? "×" : "–"
-  const promotion = move.promotion && movingPiece ? `=${PIECE_GLYPH[movingPiece.color][move.promotion]}` : ""
-  return `${token}${formatSquare(move.from)}${separator}${formatSquare(move.to)}${promotion}`
 }
 
 function squareLabel(square: number, piece: Piece | null, isLegal: boolean): string {
