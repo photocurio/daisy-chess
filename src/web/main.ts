@@ -240,9 +240,14 @@ function newGame(): void {
 }
 
 function startGame(side: Color): void {
+  engineRequestId++
   humanColor = side
   choosingSide = false
-  newGame()
+  selectedSquare = null
+  thinking = false
+  render()
+
+  if (position.turn !== humanColor) window.setTimeout(requestEngineMove, 350)
 }
 
 function showSideChoice(): void {
@@ -550,6 +555,7 @@ function registerWebMcpTools(): void {
       execute: (input: unknown) => {
         const side = (input as { side?: unknown } | null)?.side
         if (side !== "light" && side !== "dark") throw new Error("side must be light or dark")
+        showSideChoice()
         startGame(side)
         return gameSnapshot()
       },
