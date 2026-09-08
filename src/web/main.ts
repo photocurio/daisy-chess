@@ -423,10 +423,12 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
   if (status.type !== "ongoing") {
     turnCallout.classList.add("turn-callout--result")
     const { heading, detail } = resultCopy(status)
-    const italicClass = status.type === "checkmate" && status.winner !== humanColor
+    const didLoseByCheckmate = status.type === "checkmate" && status.winner !== humanColor
+    const italicClass = didLoseByCheckmate
       ? "result-heading--italic"
       : ""
-    turnCallout.innerHTML = `<div><strong class="${italicClass}">${heading}</strong>${detail ? `<small>${detail}</small>` : ""}</div>`
+    const bullet = didLoseByCheckmate ? '<span class="turn-pip" aria-hidden="true"></span>' : ""
+    turnCallout.innerHTML = `${bullet}<div><strong class="${italicClass}">${heading}</strong>${detail ? `<small>${detail}</small>` : ""}</div>`
     return
   }
 
@@ -438,7 +440,9 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
 
   if (position.turn === humanColor) {
     const checked = isInCheck(position, humanColor)
-    turnCallout.innerHTML = `<span class="turn-pip"></span><div><strong>${checked ? "Your king is in check" : "Your move"}</strong><small>${checked ? "Find a safe square or stop the attack." : "Select a piece to see its legal moves."}</small></div>`
+    turnCallout.innerHTML = checked
+      ? '<span class="turn-pip" aria-hidden="true"></span><div><strong class="result-heading--italic">Check</strong></div>'
+      : '<span class="turn-pip" aria-hidden="true"></span><div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>'
   } else {
     turnCallout.innerHTML = `<span class="turn-pip"></span><div><strong>Engine’s move</strong><small>Waiting for the house.</small></div>`
   }
@@ -465,7 +469,7 @@ function resultCopy(status: Exclude<DisplayStatus, { type: "ongoing" }>): { head
     }
   }
   return {
-    heading: didHumanWin ? "Checkmate—you win" : "Checkmate—the house wins",
+    heading: didHumanWin ? "Checkmate—you win" : "Checkmate—the house wins.",
     detail: "",
   }
 }
