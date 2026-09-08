@@ -338,10 +338,16 @@ function render(errorMessage?: string): void {
 
 function renderBoard(status: DisplayStatus): void {
   boardElement.replaceChildren()
+  const canHumanMove = !choosingSide
+    && !thinking
+    && status.type === "ongoing"
+    && position.turn === humanColor
+  const allLegalMoves = canHumanMove ? generateLegalMoves(position) : []
   const legalMoves = selectedSquare === null
     ? []
-    : generateLegalMoves(position).filter((move) => move.from === selectedSquare)
+    : allLegalMoves.filter((move) => move.from === selectedSquare)
   const legalTargets = new Set(legalMoves.map((move) => move.to))
+  const selectableSquares = new Set(allLegalMoves.map((move) => move.from))
   const order = boardOrder()
 
   for (const square of order) {
@@ -351,11 +357,7 @@ function renderBoard(status: DisplayStatus): void {
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
     const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
-    const isSelectable = !choosingSide
-      && !thinking
-      && status.type === "ongoing"
-      && position.turn === humanColor
-      && piece?.color === humanColor
+    const isSelectable = piece?.color === humanColor && selectableSquares.has(square)
     const isLegalTarget = !choosingSide && legalTargets.has(square)
 
     button.type = "button"
