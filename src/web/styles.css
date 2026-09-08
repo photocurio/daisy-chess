@@ -149,6 +149,15 @@ a:focus-visible {
   background: var(--ink);
 }
 
+.win-condition {
+  margin: 0;
+  padding: 10px 2px 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -205,7 +214,6 @@ a:focus-visible {
   }
 }
 
-.square.is-last::before,
 .square.is-selected::before {
   content: "";
   position: absolute;

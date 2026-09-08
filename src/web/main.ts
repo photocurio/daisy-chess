@@ -104,11 +104,12 @@ app.innerHTML = `
     <section class="play-layout" aria-label="Barroom Brawl game">
       <div class="board-stage">
         <div class="board-wrap">
-          <div class="board" id="board" role="grid" aria-label="Barroom Brawl board"></div>
+          <div class="board" id="board" role="grid" aria-label="Barroom Brawl board" aria-describedby="win-condition"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
         </div>
+        <p class="win-condition" id="win-condition">Reach the center with your king to win, or checkmate the opponent</p>
       </div>
 
       <aside class="match-panel">
@@ -337,7 +338,6 @@ function renderBoard(status: DisplayStatus): void {
     : generateLegalMoves(position).filter((move) => move.from === selectedSquare)
   const legalTargets = new Set(legalMoves.map((move) => move.to))
   const order = boardOrder()
-  const lastMoveWasHuman = history[history.length - 1]?.color === humanColor
 
   for (const square of order) {
     const piece = position.board[square] ?? null
@@ -345,7 +345,6 @@ function renderBoard(status: DisplayStatus): void {
     const file = square % 5
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
-    const isLastMove = lastMoveWasHuman && (lastMove?.from === square || lastMove?.to === square)
     const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
     const isSelectable = !choosingSide
       && !thinking
@@ -362,7 +361,6 @@ function renderBoard(status: DisplayStatus): void {
       selectedSquare === square ? "is-selected" : "",
       legalTargets.has(square) ? "is-legal" : "",
       legalTargets.has(square) && Boolean(piece) ? "is-capture" : "",
-      isLastMove ? "is-last" : "",
       isCheck ? "is-check" : "",
       isSelectable ? "is-selectable" : "",
     ].filter(Boolean).join(" ")
