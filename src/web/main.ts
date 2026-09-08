@@ -49,12 +49,12 @@ interface EngineResponse {
 
 const PIECE_GLYPH: Record<Color, Record<PieceType, string>> = {
   light: {
-    king: "♚",
-    queen: "♛",
-    rook: "♜",
-    bishop: "♝",
-    knight: "♞",
-    pawn: "♟",
+    king: "♔",
+    queen: "♕",
+    rook: "♖",
+    bishop: "♗",
+    knight: "♘",
+    pawn: "♙",
   },
   dark: {
     king: "♚",
@@ -66,13 +66,13 @@ const PIECE_GLYPH: Record<Color, Record<PieceType, string>> = {
   },
 }
 
-const PIECE_DETAIL_GLYPH: Record<PieceType, string> = {
-  king: "♔",
-  queen: "♕",
-  rook: "♖",
-  bishop: "♗",
-  knight: "♘",
-  pawn: "♙",
+const PIECE_ENVELOPE_GLYPH: Record<PieceType, string> = {
+  king: "\uE254",
+  queen: "\uE255",
+  rook: "\uE256",
+  bishop: "\uE257",
+  knight: "\uE258",
+  pawn: "\uE259",
 }
 
 const PIECE_NAME: Record<PieceType, string> = {
@@ -94,14 +94,14 @@ app.innerHTML = `
   <main class="game-shell">
     <header class="masthead">
       <a class="wordmark" href="#" aria-label="Barroom Brawl home">
-        <span class="wordmark-mark" aria-hidden="true">BB</span>
+        <span class="wordmark-mark" aria-hidden="true">B</span>
         <span>
-          <strong>Barroom Brawl</strong>
-          <small>Five-by-five chess</small>
+          <strong>BOSTON.COM</strong>
+          <small>Games</small>
         </span>
       </a>
       <div class="header-rule" aria-hidden="true"></div>
-      <p class="header-objective"><span></span> Capture the king’s options—or reach the center first.</p>
+      <p class="header-objective">Barroom Brawl</p>
       <button class="icon-button" id="rules-button" type="button" aria-expanded="false" aria-controls="rules-card">
         <span aria-hidden="true">?</span><span class="button-label">How to play</span>
       </button>
@@ -123,8 +123,8 @@ app.innerHTML = `
         <section class="match-card">
           <div class="match-card-heading">
             <div>
-              <span class="eyebrow">Exhibition match</span>
-              <h1>Take the center.</h1>
+              <span class="eyebrow">Five-by-five chess</span>
+              <h1>Barroom Brawl</h1>
             </div>
             <span class="round-badge" id="formation-badge">—</span>
           </div>
@@ -148,7 +148,7 @@ app.innerHTML = `
           </div>
 
           <div class="move-section">
-            <div class="section-heading"><h2>Scorecard</h2><span id="move-count">Opening position</span></div>
+            <div class="section-heading"><h2>Moves</h2><span id="move-count">Opening position</span></div>
             <div class="move-list" id="move-list">
               <p class="empty-moves">The first round is yours.</p>
             </div>
@@ -435,12 +435,9 @@ function renderBoard(status: DisplayStatus): void {
     const showFile = humanColor === "light" ? rank === 0 : rank === 4
     const showRank = humanColor === "light" ? file === 0 : file === 4
     button.innerHTML = `
-      ${piece ? `
-        <span class="piece piece--${piece.color}" aria-hidden="true">
-          <span class="piece-silhouette">${PIECE_GLYPH[piece.color][piece.type]}</span>
-          <span class="piece-detail">${PIECE_DETAIL_GLYPH[piece.type]}</span>
-        </span>
-      ` : ""}
+                ${piece ? `
+                  <span class="piece piece--${piece.color}" data-envelope="${PIECE_ENVELOPE_GLYPH[piece.type]}" aria-hidden="true">${PIECE_GLYPH[piece.color][piece.type]}</span>
+                ` : ""}
       ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true">✦</span>' : ""}
       ${showFile ? `<span class="coord coord--file">${FILES[file]}</span>` : ""}
       ${showRank ? `<span class="coord coord--rank">${rank + 1}</span>` : ""}
