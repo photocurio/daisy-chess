@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   build: {
-    outDir: "dist/web",
+    outDir: "dist/client",
     target: "es2022",
   },
 })
