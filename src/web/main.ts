@@ -182,6 +182,7 @@ let history: HistoryEntry[] = []
 let snapshots: Position[] = []
 let thinking = false
 let engineRequestId = 0
+let shouldAnimateLastMove = false
 
 newGame()
 registerWebMcpTools()
@@ -242,6 +243,7 @@ function newGame(): void {
   history = []
   snapshots = [position]
   thinking = false
+  shouldAnimateLastMove = false
   render()
 
   if (position.turn !== humanColor) window.setTimeout(requestEngineMove, 350)
@@ -276,6 +278,7 @@ function applyGameMove(move: Move): void {
   snapshots.push(position)
   lastMove = move
   selectedSquare = null
+  shouldAnimateLastMove = true
 }
 
 function playHumanMove(move: Move): void {
@@ -378,7 +381,31 @@ function renderBoard(status: DisplayStatus): void {
       ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true">✦</span>' : ""}
     `
     boardElement.append(button)
+    if (shouldAnimateLastMove && lastMove?.to === square) {
+      animateMovedPiece(button, order, lastMove)
+    }
   }
+
+  shouldAnimateLastMove = false
+}
+
+function animateMovedPiece(squareElement: HTMLButtonElement, order: number[], move: Move): void {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+  const pieceElement = squareElement.querySelector<HTMLElement>(".piece")
+  const fromIndex = order.indexOf(move.from)
+  const toIndex = order.indexOf(move.to)
+  if (!pieceElement || fromIndex < 0 || toIndex < 0) return
+
+  const columnOffset = (fromIndex % 5) - (toIndex % 5)
+  const rowOffset = Math.floor(fromIndex / 5) - Math.floor(toIndex / 5)
+  pieceElement.animate(
+    [
+      { transform: `translate(${columnOffset * 100}%, calc(${rowOffset * 100}% - 1%))` },
+      { transform: "translate(0, -1%)" },
+    ],
+    { duration: 300, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+  )
 }
 
 function renderTurn(status: DisplayStatus, errorMessage?: string): void {

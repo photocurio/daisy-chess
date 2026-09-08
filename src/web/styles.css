@@ -18,6 +18,7 @@
   --line: #d7d7d7;
   --tile-red: #c92335;
   --tile-white: #ffffff;
+  --center-accent: #ffd43b;
   --piece-fill: #ffffff;
   --piece-size: 82cqi;
 }
@@ -115,6 +116,13 @@ a:focus-visible {
   color: var(--ink);
   background: #ffffff;
   cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.icon-button:hover {
+  border-color: var(--ink);
+  background: var(--soft);
+  transform: translateY(-1px);
 }
 
 .icon-button > span:first-child {
@@ -195,6 +203,7 @@ a:focus-visible {
   container-type: inline-size;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
 .square:disabled {
@@ -224,6 +233,7 @@ a:focus-visible {
   position: absolute;
   inset: 0;
   background: rgba(255, 213, 0, 0.34);
+  animation: square-highlight-in 220ms ease-out both;
 }
 
 .square.is-selected::before {
@@ -248,6 +258,7 @@ a:focus-visible {
   border: 2px solid rgba(255, 255, 255, 0.78);
   border-radius: 50%;
   background: rgba(17, 17, 17, 0.62);
+  animation: legal-target-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .square.is-capture::after {
@@ -257,24 +268,22 @@ a:focus-visible {
 }
 
 .square--center {
-  background-image: radial-gradient(circle, rgba(17, 17, 17, 0.38) 0 5%, transparent 6%);
-}
-
-.square--dark.square--center {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.72) 0 5%, transparent 6%);
+  box-shadow: inset 0 0 0 3px var(--center-accent), inset 0 0 0 6px var(--ink);
 }
 
 .center-mark {
   position: absolute;
-  right: 6px;
-  bottom: 5px;
-  z-index: 4;
-  color: rgba(17, 17, 17, 0.7);
-  font-size: clamp(0.68rem, 3.4cqi, 0.9rem);
-}
-
-.square--dark .center-mark {
-  color: rgba(255, 255, 255, 0.86);
+  inset: 18%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  color: #ffffff;
+  background: rgba(17, 17, 17, 0.16);
+  font-size: clamp(0.72rem, 7cqi, 1.25rem);
+  line-height: 1;
+  animation: center-mark-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .piece {
@@ -282,14 +291,31 @@ a:focus-visible {
   z-index: 2;
   isolation: isolate;
   display: grid;
+  width: 100%;
+  height: 100%;
   place-items: center;
   color: var(--ink);
   font-family: "Chess Merida", sans-serif;
   font-size: var(--piece-size);
   line-height: 1;
   transform: translateY(-1%);
-  transition: transform 120ms ease;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
   user-select: none;
+}
+
+@keyframes square-highlight-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes legal-target-in {
+  from { opacity: 0; transform: scale(0.55); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes center-mark-in {
+  from { opacity: 0; transform: scale(0.72); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .piece::before {
@@ -400,6 +426,7 @@ p {
   padding: 11px 12px;
   border-left: 4px solid var(--brand-red);
   background: var(--soft);
+  transition: border-color 220ms ease, background-color 220ms ease;
 }
 
 .turn-callout--thinking {
@@ -471,10 +498,12 @@ p {
   border: 1px solid var(--brand-red-dark);
   color: #ffffff;
   background: var(--brand-red);
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .primary-button:hover {
   background: var(--brand-red-dark);
+  transform: translateY(-1px);
 }
 
 .primary-button[hidden] {
@@ -484,6 +513,10 @@ p {
 .rules-card {
   padding: 15px;
   border-top: 4px solid var(--brand-red);
+}
+
+.rules-card:not([hidden]) {
+  animation: panel-in 220ms ease-out both;
 }
 
 .rules-card[hidden] {
@@ -560,6 +593,11 @@ p {
   background: #ffffff;
 }
 
+.side-dialog[open],
+.promotion-dialog[open] {
+  animation: dialog-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .side-dialog {
   width: min(480px, 100%);
   max-width: none;
@@ -572,6 +610,7 @@ p {
 .side-dialog::backdrop,
 .promotion-dialog::backdrop {
   background: rgba(0, 0, 0, 0.68);
+  animation: backdrop-in 220ms ease-out both;
 }
 
 .side-dialog form,
@@ -602,10 +641,12 @@ p {
   cursor: pointer;
   font-size: 0.84rem;
   font-weight: 900;
+  transition: background-color 180ms ease, transform 180ms ease;
 }
 
 .side-options button:hover {
   background: var(--brand-red-dark);
+  transform: translateY(-1px);
 }
 
 .promotion-options {
@@ -625,11 +666,28 @@ p {
   background: #ffffff;
   cursor: pointer;
   font-size: 0.68rem;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
 }
 
 .promotion-options button:hover {
   border-color: var(--brand-red);
   background: #fff3f4;
+  transform: translateY(-1px);
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes backdrop-in {
+  from { background: rgba(0, 0, 0, 0); }
+  to { background: rgba(0, 0, 0, 0.68); }
 }
 
 .promotion-options button span {
