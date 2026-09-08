@@ -1,6 +1,8 @@
 node_modules/
 dist/
 coverage/
+results/*.json
+results/*.csv
 *.log
 .DS_Store
 .env
