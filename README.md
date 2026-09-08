@@ -30,7 +30,18 @@ One possible opening position is:
 
 See [RULES.md](RULES.md) for the working specification and unresolved decisions.
 
-## Play
+## Play in the browser
+
+The pitch-ready browser demo runs the game engine in a Web Worker, keeping search off the interface thread.
+
+```sh
+npm install
+npm run dev
+```
+
+Choose Light or Dark, click a piece, then click a highlighted destination. The dark formation is randomized for every new round.
+
+## Play in the terminal
 
 Requires Node.js 22 or later.
 
