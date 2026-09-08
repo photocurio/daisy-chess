@@ -200,7 +200,7 @@ a:focus-visible {
   border: 0;
   color: inherit;
   container-type: inline-size;
-  cursor: grab;
+  cursor: default;
   touch-action: manipulation;
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
@@ -209,7 +209,11 @@ a:focus-visible {
   cursor: default;
 }
 
-.square:not(:disabled):active {
+.square.is-selectable {
+  cursor: grab;
+}
+
+.square.is-selectable:active {
   cursor: grabbing;
 }
 
@@ -222,7 +226,7 @@ a:focus-visible {
 }
 
 @media (hover: hover) {
-  .square:hover:not(:disabled)::before {
+  .square.is-selectable:hover::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -387,15 +391,31 @@ a:focus-visible {
   gap: 10px;
 }
 
-.match-card,
 .rules-card {
   border: 1px solid var(--line);
   background: #ffffff;
 }
 
 .match-card {
-  padding: 15px;
+  background: #ffffff;
+}
+
+.side-choice,
+.game-controls {
+  padding: 15px 2px 0;
   border-top: 4px solid var(--brand-red);
+  animation: panel-in 220ms ease-out both;
+}
+
+.side-choice[hidden],
+.game-controls[hidden] {
+  display: none;
+}
+
+.side-choice h2 {
+  margin-bottom: 16px;
+  font-size: 1.08rem;
+  font-weight: 900;
 }
 
 .eyebrow {
@@ -419,23 +439,17 @@ p {
   align-items: center;
   gap: 11px;
   min-height: 60px;
-  padding: 11px 12px;
-  border-left: 4px solid var(--brand-red);
-  background: var(--soft);
-  transition: border-color 220ms ease, background-color 220ms ease;
-}
-
-.turn-callout--thinking {
-  border-color: #3f6f91;
+  padding: 6px 2px 11px;
+  background: transparent;
+  transition: color 220ms ease;
 }
 
 .turn-callout--danger {
-  border-color: var(--brand-red-dark);
-  background: #fff0f1;
+  color: var(--brand-red-dark);
 }
 
 .turn-callout--result {
-  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .turn-pip {
@@ -474,7 +488,7 @@ p {
 
 .match-actions {
   display: block;
-  margin-top: 14px;
+  margin-top: 4px;
 }
 
 .primary-button {
@@ -578,7 +592,6 @@ p {
   line-height: 1.45;
 }
 
-.side-dialog,
 .promotion-dialog {
   width: min(420px, calc(100% - 24px));
   padding: 0;
@@ -589,22 +602,8 @@ p {
   background: #ffffff;
 }
 
-.side-dialog[open],
 .promotion-dialog[open] {
   animation: dialog-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.side-dialog {
-  width: min(480px, 100%);
-  max-width: none;
-  margin: auto auto 0;
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-}
-
-.side-dialog::backdrop {
-  background: transparent;
 }
 
 .promotion-dialog::backdrop {
@@ -612,12 +611,10 @@ p {
   animation: backdrop-in 220ms ease-out both;
 }
 
-.side-dialog form,
 .promotion-dialog form {
   padding: 20px;
 }
 
-.side-dialog h2,
 .promotion-dialog h2 {
   margin-bottom: 16px;
   font-size: 1.2rem;
@@ -714,13 +711,6 @@ p {
     border: 1px solid #cfcfcf;
   }
 
-  .side-dialog {
-    width: min(448px, calc(100% - 32px));
-    margin-bottom: 16px;
-    border-right: 1px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
-    border-left: 1px solid var(--ink);
-  }
 }
 
 @media (max-width: 370px) {

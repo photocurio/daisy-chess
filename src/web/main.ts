@@ -116,13 +116,24 @@ app.innerHTML = `
 
       <aside class="match-panel">
         <section class="match-card">
-          <div class="turn-callout" id="turn-callout" role="status" aria-live="polite">
-            <span class="turn-pip"></span>
-            <div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>
+          <div class="side-choice" id="side-choice">
+            <span class="eyebrow">New game</span>
+            <h2>Choose the light or dark pieces</h2>
+            <div class="side-options">
+              <button type="button" data-side-choice="light">Play light</button>
+              <button type="button" data-side-choice="dark">Play dark</button>
+            </div>
           </div>
 
-          <div class="match-actions">
-            <button class="primary-button" id="new-game" type="button">Resign and try again</button>
+          <div class="game-controls" id="game-controls" hidden>
+            <div class="turn-callout" id="turn-callout" role="status" aria-live="polite">
+              <span class="turn-pip"></span>
+              <div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>
+            </div>
+
+            <div class="match-actions">
+              <button class="primary-button" id="new-game" type="button">Resign and try again</button>
+            </div>
           </div>
         </section>
 
@@ -138,17 +149,6 @@ app.innerHTML = `
     </section>
   </main>
 
-  <dialog class="side-dialog" id="side-dialog" aria-labelledby="side-dialog-title">
-    <form method="dialog">
-      <span class="eyebrow">New game</span>
-      <h2 id="side-dialog-title">Choose the light or dark pieces</h2>
-      <div class="side-options">
-        <button type="button" data-side-choice="light">Play light</button>
-        <button type="button" data-side-choice="dark">Play dark</button>
-      </div>
-    </form>
-  </dialog>
-
   <dialog class="promotion-dialog" id="promotion-dialog">
     <form method="dialog">
       <span class="eyebrow">Pawn promotion</span>
@@ -163,11 +163,12 @@ const boardElement = requireElement<HTMLDivElement>("board")
 const thinkingElement = requireElement<HTMLDivElement>("board-thinking")
 const turnCallout = requireElement<HTMLDivElement>("turn-callout")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
+const sideChoice = requireElement<HTMLDivElement>("side-choice")
+const gameControls = requireElement<HTMLDivElement>("game-controls")
 const opponentStrip = requireElement<HTMLParagraphElement>("opponent-strip")
 const playerStrip = requireElement<HTMLParagraphElement>("player-strip")
 const rulesButton = requireElement<HTMLButtonElement>("rules-button")
 const rulesCard = requireElement<HTMLElement>("rules-card")
-const sideDialog = requireElement<HTMLDialogElement>("side-dialog")
 const promotionDialog = requireElement<HTMLDialogElement>("promotion-dialog")
 const promotionOptions = requireElement<HTMLDivElement>("promotion-options")
 
@@ -183,19 +184,12 @@ let snapshots: Position[] = []
 let thinking = false
 let engineRequestId = 0
 let shouldAnimateLastMove = false
+let choosingSide = true
 
-newGame()
+showSideChoice()
 registerWebMcpTools()
-sideDialog.showModal()
 
-newGameButton.addEventListener("click", () => {
-  engineRequestId++
-  thinking = false
-  selectedSquare = null
-  render()
-  sideDialog.showModal()
-})
-sideDialog.addEventListener("cancel", (event) => event.preventDefault())
+newGameButton.addEventListener("click", showSideChoice)
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-side-choice]")) {
   button.addEventListener("click", () => {
     const side = button.dataset.sideChoice
@@ -251,12 +245,18 @@ function newGame(): void {
 
 function startGame(side: Color): void {
   humanColor = side
-  if (sideDialog.open) sideDialog.close()
+  choosingSide = false
+  newGame()
+}
+
+function showSideChoice(): void {
+  humanColor = "light"
+  choosingSide = true
   newGame()
 }
 
 function requestEngineMove(): void {
-  if (displayStatus().type !== "ongoing" || position.turn === humanColor) return
+  if (choosingSide || displayStatus().type !== "ongoing" || position.turn === humanColor) return
 
   thinking = true
   selectedSquare = null
@@ -282,14 +282,14 @@ function applyGameMove(move: Move): void {
 }
 
 function playHumanMove(move: Move): void {
-  if (thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
+  if (choosingSide || thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
   applyGameMove(move)
   render()
   if (displayStatus().type === "ongoing") window.setTimeout(requestEngineMove, 260)
 }
 
 function handleSquareClick(square: number): void {
-  if (thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
+  if (choosingSide || thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
 
   const legalMoves = generateLegalMoves(position)
   const chosenMoves = selectedSquare === null
@@ -328,7 +328,9 @@ function render(errorMessage?: string): void {
   renderPlayerStrips()
   renderBoard(status)
   renderTurn(status, errorMessage)
-  newGameButton.hidden = status.type !== "ongoing"
+  sideChoice.hidden = !choosingSide
+  gameControls.hidden = choosingSide
+  newGameButton.hidden = choosingSide || status.type !== "ongoing"
 
   thinkingElement.classList.toggle("is-visible", thinking)
   thinkingElement.setAttribute("aria-hidden", String(!thinking))
@@ -357,6 +359,12 @@ function renderBoard(status: DisplayStatus): void {
     const isLightTile = (file + rank) % 2 === 1
     const isLastMove = lastMoveWasHuman && (lastMove?.from === square || lastMove?.to === square)
     const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
+    const isSelectable = !choosingSide
+      && !thinking
+      && status.type === "ongoing"
+      && position.turn === humanColor
+      && piece?.color === humanColor
+    const isLegalTarget = !choosingSide && legalTargets.has(square)
 
     button.type = "button"
     button.className = [
@@ -368,11 +376,12 @@ function renderBoard(status: DisplayStatus): void {
       legalTargets.has(square) && Boolean(piece) ? "is-capture" : "",
       isLastMove ? "is-last" : "",
       isCheck ? "is-check" : "",
+      isSelectable ? "is-selectable" : "",
     ].filter(Boolean).join(" ")
     button.dataset.square = String(square)
     button.setAttribute("role", "gridcell")
     button.setAttribute("aria-label", squareLabel(square, piece, legalTargets.has(square)))
-    button.disabled = thinking || status.type !== "ongoing"
+    button.disabled = !isSelectable && !isLegalTarget
     button.addEventListener("click", () => handleSquareClick(square))
 
     button.innerHTML = `
@@ -513,6 +522,7 @@ function gameSnapshot(): Record<string, unknown> {
       ? generateLegalMoves(position).map(moveToUci)
       : [],
     engineThinking: thinking,
+    awaitingSideChoice: choosingSide,
   }
 }
 
