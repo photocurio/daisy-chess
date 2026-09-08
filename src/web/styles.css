@@ -200,13 +200,17 @@ a:focus-visible {
   border: 0;
   color: inherit;
   container-type: inline-size;
-  cursor: pointer;
+  cursor: grab;
   touch-action: manipulation;
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
 .square:disabled {
   cursor: default;
+}
+
+.square:not(:disabled):active {
+  cursor: grabbing;
 }
 
 .square--light {
@@ -222,7 +226,7 @@ a:focus-visible {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(255, 213, 0, 0.2);
+    background: rgba(255, 190, 0, 0.48);
   }
 }
 
@@ -272,7 +276,7 @@ a:focus-visible {
 
 .center-mark {
   position: absolute;
-  width: 52%;
+  width: 60%;
   aspect-ratio: 1;
   z-index: 1;
   display: grid;
@@ -325,12 +329,6 @@ a:focus-visible {
   color: var(--piece-fill);
   content: attr(data-envelope);
   pointer-events: none;
-}
-
-@media (hover: hover) {
-  .square:hover:not(:disabled) .piece {
-    transform: translateY(-2%) scale(1.025);
-  }
 }
 
 .board-thinking {

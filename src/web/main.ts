@@ -347,6 +347,7 @@ function renderBoard(status: DisplayStatus): void {
     : generateLegalMoves(position).filter((move) => move.from === selectedSquare)
   const legalTargets = new Set(legalMoves.map((move) => move.to))
   const order = boardOrder()
+  const lastMoveWasHuman = history[history.length - 1]?.color === humanColor
 
   for (const square of order) {
     const piece = position.board[square] ?? null
@@ -354,7 +355,7 @@ function renderBoard(status: DisplayStatus): void {
     const file = square % 5
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
-    const isLastMove = lastMove?.from === square || lastMove?.to === square
+    const isLastMove = lastMoveWasHuman && (lastMove?.from === square || lastMove?.to === square)
     const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
 
     button.type = "button"
