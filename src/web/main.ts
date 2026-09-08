@@ -350,9 +350,7 @@ function renderBoard(status: DisplayStatus): void {
     const file = square % 5
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
-    const isCheck = status.type === "ongoing"
-      && piece?.type === "king"
-      && isInCheck(position, piece.color)
+    const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
     const isSelectable = !choosingSide
       && !thinking
       && status.type === "ongoing"
