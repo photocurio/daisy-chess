@@ -49,12 +49,12 @@ interface EngineResponse {
 
 const PIECE_GLYPH: Record<Color, Record<PieceType, string>> = {
   light: {
-    king: "♔",
-    queen: "♕",
-    rook: "♖",
-    bishop: "♗",
-    knight: "♘",
-    pawn: "♙",
+    king: "♚",
+    queen: "♛",
+    rook: "♜",
+    bishop: "♝",
+    knight: "♞",
+    pawn: "♟",
   },
   dark: {
     king: "♚",
