@@ -91,6 +91,10 @@ a:focus-visible {
   line-height: 1;
 }
 
+.game-title strong span {
+  color: var(--ink);
+}
+
 .icon-button {
   display: grid;
   width: 40px;
