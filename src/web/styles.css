@@ -67,10 +67,10 @@ a:focus-visible {
 }
 
 .masthead {
-  display: grid;
-  grid-template-columns: auto 1px minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 14px;
   min-height: 58px;
   margin: 0 -14px 12px;
   padding: 8px 14px;
@@ -78,64 +78,30 @@ a:focus-visible {
   background: #ffffff;
 }
 
-.wordmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.game-title {
   min-width: 0;
-  color: var(--ink);
-  text-decoration: none;
 }
 
-.wordmark-mark {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  place-items: center;
-  color: #ffffff;
-  background: var(--brand-red);
-  font-size: 1rem;
-  font-weight: 900;
-  letter-spacing: -0.08em;
-}
-
-.wordmark strong,
-.wordmark small {
+.game-title strong,
+.game-title small {
   display: block;
 }
 
-.wordmark strong {
-  font-size: 0.88rem;
+.game-title strong {
+  font-size: 1.08rem;
   font-weight: 900;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
   line-height: 1;
 }
 
-.wordmark small {
-  margin-top: 3px;
-  color: var(--brand-red);
+.game-title small {
+  margin-top: 4px;
+  color: var(--muted);
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
   line-height: 1;
   text-transform: uppercase;
-}
-
-.header-rule {
-  width: 1px;
-  height: 28px;
-  background: var(--line);
-}
-
-.header-objective {
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .icon-button {
@@ -410,13 +376,6 @@ a:focus-visible {
   border-top: 4px solid var(--brand-red);
 }
 
-.match-card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .eyebrow {
   display: block;
   margin-bottom: 3px;
@@ -431,14 +390,6 @@ h1,
 h2,
 p {
   margin-top: 0;
-}
-
-.match-card h1 {
-  margin-bottom: 0;
-  font-size: 1.28rem;
-  font-weight: 900;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
 }
 
 .turn-callout {
@@ -526,6 +477,10 @@ p {
   background: var(--brand-red-dark);
 }
 
+.primary-button[hidden] {
+  display: none;
+}
+
 .rules-card {
   padding: 15px;
   border-top: 4px solid var(--brand-red);
@@ -594,6 +549,7 @@ p {
   line-height: 1.45;
 }
 
+.side-dialog,
 .promotion-dialog {
   width: min(420px, calc(100% - 24px));
   padding: 0;
@@ -604,18 +560,52 @@ p {
   background: #ffffff;
 }
 
+.side-dialog {
+  width: min(480px, 100%);
+  max-width: none;
+  margin: auto auto 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.side-dialog::backdrop,
 .promotion-dialog::backdrop {
   background: rgba(0, 0, 0, 0.68);
 }
 
+.side-dialog form,
 .promotion-dialog form {
   padding: 20px;
 }
 
+.side-dialog h2,
 .promotion-dialog h2 {
   margin-bottom: 16px;
   font-size: 1.2rem;
   font-weight: 900;
+}
+
+.side-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.side-options button {
+  min-height: 52px;
+  padding: 10px;
+  border: 1px solid var(--brand-red-dark);
+  border-radius: 0;
+  color: #ffffff;
+  background: var(--brand-red);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.side-options button:hover {
+  background: var(--brand-red-dark);
 }
 
 .promotion-options {
@@ -666,6 +656,14 @@ p {
     margin-block: 16px;
     border: 1px solid #cfcfcf;
   }
+
+  .side-dialog {
+    width: min(448px, calc(100% - 32px));
+    margin-bottom: 16px;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    border-left: 1px solid var(--ink);
+  }
 }
 
 @media (max-width: 370px) {
@@ -676,15 +674,6 @@ p {
   .masthead {
     margin-inline: -10px;
     padding-inline: 10px;
-  }
-
-  .header-objective,
-  .header-rule {
-    display: none;
-  }
-
-  .masthead {
-    grid-template-columns: 1fr auto;
   }
 
 }

@@ -93,15 +93,10 @@ if (!app) throw new Error("App mount point was not found")
 app.innerHTML = `
   <main class="game-shell">
     <header class="masthead">
-      <a class="wordmark" href="#" aria-label="Barroom Brawl home">
-        <span class="wordmark-mark" aria-hidden="true">B</span>
-        <span>
-          <strong>BOSTON.COM</strong>
-          <small>Games</small>
-        </span>
-      </a>
-      <div class="header-rule" aria-hidden="true"></div>
-      <p class="header-objective">Barroom Brawl</p>
+      <div class="game-title">
+        <strong>Barroom Brawl</strong>
+        <small>Five-by-five chess</small>
+      </div>
       <button class="icon-button" id="rules-button" type="button" aria-expanded="false" aria-controls="rules-card">
         <span aria-hidden="true">?</span><span class="button-label">How to play</span>
       </button>
@@ -109,32 +104,25 @@ app.innerHTML = `
 
     <section class="play-layout" aria-label="Barroom Brawl game">
       <div class="board-stage">
-        <p class="player-strip player-strip--opponent">House plays dark pieces</p>
+        <p class="player-strip player-strip--opponent" id="opponent-strip">House plays dark pieces</p>
         <div class="board-wrap">
           <div class="board" id="board" role="grid" aria-label="Barroom Brawl board"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
         </div>
-        <p class="player-strip">You play light pieces</p>
+        <p class="player-strip" id="player-strip">You play light pieces</p>
       </div>
 
       <aside class="match-panel">
         <section class="match-card">
-          <div class="match-card-heading">
-            <div>
-              <span class="eyebrow">Five-by-five chess</span>
-              <h1>Barroom Brawl</h1>
-            </div>
-          </div>
-
           <div class="turn-callout" id="turn-callout" role="status" aria-live="polite">
             <span class="turn-pip"></span>
             <div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>
           </div>
 
           <div class="match-actions">
-            <button class="primary-button" id="new-game" type="button">New round <span aria-hidden="true">↻</span></button>
+            <button class="primary-button" id="new-game" type="button">Resign and try again</button>
           </div>
         </section>
 
@@ -150,6 +138,17 @@ app.innerHTML = `
     </section>
   </main>
 
+  <dialog class="side-dialog" id="side-dialog" aria-labelledby="side-dialog-title">
+    <form method="dialog">
+      <span class="eyebrow">New game</span>
+      <h2 id="side-dialog-title">Choose the light or dark pieces</h2>
+      <div class="side-options">
+        <button type="button" data-side-choice="light">Play light</button>
+        <button type="button" data-side-choice="dark">Play dark</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="promotion-dialog" id="promotion-dialog">
     <form method="dialog">
       <span class="eyebrow">Pawn promotion</span>
@@ -164,14 +163,17 @@ const boardElement = requireElement<HTMLDivElement>("board")
 const thinkingElement = requireElement<HTMLDivElement>("board-thinking")
 const turnCallout = requireElement<HTMLDivElement>("turn-callout")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
+const opponentStrip = requireElement<HTMLParagraphElement>("opponent-strip")
+const playerStrip = requireElement<HTMLParagraphElement>("player-strip")
 const rulesButton = requireElement<HTMLButtonElement>("rules-button")
 const rulesCard = requireElement<HTMLElement>("rules-card")
+const sideDialog = requireElement<HTMLDialogElement>("side-dialog")
 const promotionDialog = requireElement<HTMLDialogElement>("promotion-dialog")
 const promotionOptions = requireElement<HTMLDivElement>("promotion-options")
 
 const engine = new Worker(new URL("./engine.worker.ts", import.meta.url), { type: "module" })
 
-const humanColor: Color = "light"
+let humanColor: Color = "light"
 let position: Position
 let formationId = ""
 let selectedSquare: number | null = null
@@ -183,8 +185,23 @@ let engineRequestId = 0
 
 newGame()
 registerWebMcpTools()
+sideDialog.showModal()
 
-newGameButton.addEventListener("click", newGame)
+newGameButton.addEventListener("click", () => {
+  engineRequestId++
+  thinking = false
+  selectedSquare = null
+  render()
+  sideDialog.showModal()
+})
+sideDialog.addEventListener("cancel", (event) => event.preventDefault())
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-side-choice]")) {
+  button.addEventListener("click", () => {
+    const side = button.dataset.sideChoice
+    if (side !== "light" && side !== "dark") return
+    startGame(side)
+  })
+}
 rulesButton.addEventListener("click", () => {
   const willOpen = rulesCard.hidden
   rulesCard.hidden = !willOpen
@@ -228,6 +245,12 @@ function newGame(): void {
   render()
 
   if (position.turn !== humanColor) window.setTimeout(requestEngineMove, 350)
+}
+
+function startGame(side: Color): void {
+  humanColor = side
+  if (sideDialog.open) sideDialog.close()
+  newGame()
 }
 
 function requestEngineMove(): void {
@@ -299,11 +322,19 @@ function showPromotionChoices(moves: Move[]): void {
 
 function render(errorMessage?: string): void {
   const status = displayStatus()
+  renderPlayerStrips()
   renderBoard(status)
   renderTurn(status, errorMessage)
+  newGameButton.hidden = status.type !== "ongoing"
 
   thinkingElement.classList.toggle("is-visible", thinking)
   thinkingElement.setAttribute("aria-hidden", String(!thinking))
+}
+
+function renderPlayerStrips(): void {
+  const houseColor: Color = humanColor === "light" ? "dark" : "light"
+  opponentStrip.textContent = `House plays ${houseColor} pieces`
+  playerStrip.textContent = `You play ${humanColor} pieces`
 }
 
 function renderBoard(status: DisplayStatus): void {
@@ -484,11 +515,18 @@ function registerWebMcpTools(): void {
   register({
       name: "start_barroom_brawl_game",
       title: "Start a Barroom Brawl game",
-      description: "Start a new randomized game with the human playing Light.",
-      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      description: "Start a new randomized game with the human playing Light or Dark.",
+      inputSchema: {
+        type: "object",
+        properties: { side: { type: "string", enum: ["light", "dark"] } },
+        required: ["side"],
+        additionalProperties: false,
+      },
       annotations: { readOnlyHint: false, untrustedContentHint: false },
-      execute: () => {
-        newGame()
+      execute: (input: unknown) => {
+        const side = (input as { side?: unknown } | null)?.side
+        if (side !== "light" && side !== "dark") throw new Error("side must be light or dark")
+        startGame(side)
         return gameSnapshot()
       },
     })
