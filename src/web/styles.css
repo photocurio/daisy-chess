@@ -605,7 +605,10 @@ p {
   border-left: 0;
 }
 
-.side-dialog::backdrop,
+.side-dialog::backdrop {
+  background: transparent;
+}
+
 .promotion-dialog::backdrop {
   background: rgba(0, 0, 0, 0.68);
   animation: backdrop-in 220ms ease-out both;
