@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Chess Merida";
+  src: url("./assets/chess-merida-unicode.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -197,7 +205,7 @@ a:focus-visible {
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 50%;
-  font-family: Georgia, serif;
+  font-family: "Chess Merida", sans-serif;
   font-size: 1.65rem;
   background: rgba(255, 255, 255, 0.04);
 }
@@ -231,7 +239,7 @@ a:focus-visible {
 .captured-pieces {
   min-height: 1.5rem;
   color: rgba(244, 234, 215, 0.72);
-  font-family: Georgia, serif;
+  font-family: "Chess Merida", sans-serif;
   font-size: 1.2rem;
   letter-spacing: -0.16em;
   text-align: right;
@@ -354,8 +362,8 @@ a:focus-visible {
 .piece {
   position: relative;
   z-index: 2;
-  font-family: "Arial Unicode MS", "Noto Sans Symbols 2", "Segoe UI Symbol", "Apple Symbols", sans-serif;
-  font-size: 112cqi;
+  font-family: "Chess Merida", sans-serif;
+  font-size: 96cqi;
   line-height: 1;
   transform: translateY(-1%);
   transition: transform 140ms ease;
@@ -545,7 +553,7 @@ p {
 
 .segmented button span {
   margin-right: 2px;
-  font-family: Georgia, serif;
+  font-family: "Chess Merida", sans-serif;
   font-size: 1rem;
 }
 
@@ -912,7 +920,7 @@ p {
 }
 
 .promotion-options button span {
-  font-family: Georgia, serif;
+  font-family: "Chess Merida", sans-serif;
   font-size: 2.2rem;
 }
 
