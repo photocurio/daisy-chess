@@ -357,6 +357,7 @@ function renderBoard(status: DisplayStatus): void {
     const rank = Math.floor(square / 5)
     const isLightTile = (file + rank) % 2 === 1
     const isCheck = piece?.type === "king" && isInCheck(position, piece.color)
+    const isCenterWin = status.type === "center" && square === CENTER_SQUARE
     const isSelectable = piece?.color === humanColor && selectableSquares.has(square)
     const isLegalTarget = !choosingSide && legalTargets.has(square)
 
@@ -369,6 +370,7 @@ function renderBoard(status: DisplayStatus): void {
       legalTargets.has(square) ? "is-legal" : "",
       legalTargets.has(square) && Boolean(piece) ? "is-capture" : "",
       isCheck ? "is-check" : "",
+      isCenterWin ? "is-center-win" : "",
       isSelectable ? "is-selectable" : "",
     ].filter(Boolean).join(" ")
     button.dataset.square = String(square)
@@ -424,10 +426,13 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
     turnCallout.classList.add("turn-callout--result")
     const { heading, detail } = resultCopy(status)
     const didLoseByCheckmate = status.type === "checkmate" && status.winner !== humanColor
+    const isCenterResult = status.type === "center"
     const italicClass = didLoseByCheckmate
       ? "result-heading--italic"
       : ""
-    const bullet = didLoseByCheckmate ? '<span class="turn-pip" aria-hidden="true"></span>' : ""
+    const bullet = didLoseByCheckmate || isCenterResult
+      ? '<span class="turn-pip" aria-hidden="true"></span>'
+      : ""
     turnCallout.innerHTML = `${bullet}<div><strong class="${italicClass}">${heading}</strong>${detail ? `<small>${detail}</small>` : ""}</div>`
     return
   }
