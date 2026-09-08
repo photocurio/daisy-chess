@@ -66,6 +66,15 @@ const PIECE_GLYPH: Record<Color, Record<PieceType, string>> = {
   },
 }
 
+const PIECE_DETAIL_GLYPH: Record<PieceType, string> = {
+  king: "♔",
+  queen: "♕",
+  rook: "♖",
+  bishop: "♗",
+  knight: "♘",
+  pawn: "♙",
+}
+
 const PIECE_NAME: Record<PieceType, string> = {
   king: "King",
   queen: "Queen",
@@ -426,7 +435,12 @@ function renderBoard(status: DisplayStatus): void {
     const showFile = humanColor === "light" ? rank === 0 : rank === 4
     const showRank = humanColor === "light" ? file === 0 : file === 4
     button.innerHTML = `
-      ${piece ? `<span class="piece piece--${piece.color}" aria-hidden="true">${PIECE_GLYPH[piece.color][piece.type]}</span>` : ""}
+      ${piece ? `
+        <span class="piece piece--${piece.color}" aria-hidden="true">
+          <span class="piece-silhouette">${PIECE_GLYPH[piece.color][piece.type]}</span>
+          <span class="piece-detail">${PIECE_DETAIL_GLYPH[piece.type]}</span>
+        </span>
+      ` : ""}
       ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true">✦</span>' : ""}
       ${showFile ? `<span class="coord coord--file">${FILES[file]}</span>` : ""}
       ${showRank ? `<span class="coord coord--rank">${rank + 1}</span>` : ""}

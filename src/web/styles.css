@@ -362,6 +362,8 @@ a:focus-visible {
 .piece {
   position: relative;
   z-index: 2;
+  display: grid;
+  place-items: center;
   font-family: "Chess Merida", sans-serif;
   font-size: 96cqi;
   line-height: 1;
@@ -370,22 +372,36 @@ a:focus-visible {
   user-select: none;
 }
 
+.piece-silhouette,
+.piece-detail {
+  grid-area: 1 / 1;
+  line-height: 1;
+}
+
 .square:hover:not(:disabled) .piece {
   transform: translateY(-2%) scale(1.025);
 }
 
-.piece--light {
+.piece--light .piece-silhouette {
   color: #fff7e5;
   -webkit-text-stroke: max(1.5px, 0.018em) #10251f;
   paint-order: stroke fill;
   text-shadow: none;
 }
 
-.piece--dark {
+.piece--light .piece-detail {
+  color: #10251f;
+}
+
+.piece--dark .piece-silhouette {
   color: #10251f;
   -webkit-text-stroke: max(1.5px, 0.018em) #fff7e5;
   paint-order: stroke fill;
   text-shadow: none;
+}
+
+.piece--dark .piece-detail {
+  color: #fff7e5;
 }
 
 .coord {
