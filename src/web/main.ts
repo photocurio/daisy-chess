@@ -94,8 +94,7 @@ app.innerHTML = `
   <main class="game-shell">
     <header class="masthead">
       <div class="game-title">
-        <strong>Barroom Brawl</strong>
-        <small>Five-by-five chess</small>
+        <strong>Barroom Brawl Chess</strong>
       </div>
       <button class="icon-button" id="rules-button" type="button" aria-expanded="false" aria-controls="rules-card">
         <span aria-hidden="true">?</span><span class="button-label">How to play</span>

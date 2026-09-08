@@ -82,26 +82,12 @@ a:focus-visible {
   min-width: 0;
 }
 
-.game-title strong,
-.game-title small {
-  display: block;
-}
-
 .game-title strong {
+  display: block;
   font-size: 1.08rem;
   font-weight: 900;
   letter-spacing: -0.025em;
   line-height: 1;
-}
-
-.game-title small {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  line-height: 1;
-  text-transform: uppercase;
 }
 
 .icon-button {
@@ -286,12 +272,12 @@ a:focus-visible {
   place-items: center;
   color: #df5965;
   font-family: "Chess Merida", sans-serif;
-  font-size: 72cqi;
+  font-size: var(--piece-size);
   line-height: 1;
 }
 
 .center-mark::before {
-  content: "\E254";
+  content: "♔";
 }
 
 .piece {
