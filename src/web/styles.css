@@ -365,7 +365,7 @@ a:focus-visible {
   display: grid;
   place-items: center;
   font-family: "Chess Merida", sans-serif;
-  font-size: 96cqi;
+  font-size: 84cqi;
   line-height: 1;
   transform: translateY(-1%);
   transition: transform 140ms ease;
@@ -384,8 +384,6 @@ a:focus-visible {
 
 .piece--light .piece-silhouette {
   color: #fff7e5;
-  -webkit-text-stroke: max(1.5px, 0.018em) #10251f;
-  paint-order: stroke fill;
   text-shadow: none;
 }
 
@@ -395,8 +393,6 @@ a:focus-visible {
 
 .piece--dark .piece-silhouette {
   color: #10251f;
-  -webkit-text-stroke: max(1.5px, 0.018em) #fff7e5;
-  paint-order: stroke fill;
   text-shadow: none;
 }
 
