@@ -84,8 +84,8 @@ const PIECE_NAME: Record<PieceType, string> = {
   pawn: "Pawn",
 }
 
-const FILES = "abcde"
 const CENTER_SQUARE = 12
+const ENGINE_PRESET = { maxDepth: 6, timeMs: 300 }
 
 const app = document.querySelector<HTMLDivElement>("#app")
 if (!app) throw new Error("App mount point was not found")
@@ -109,14 +109,14 @@ app.innerHTML = `
 
     <section class="play-layout" aria-label="Barroom Brawl game">
       <div class="board-stage">
-        <div class="player-strip player-strip--opponent" id="opponent-strip"></div>
+        <p class="player-strip player-strip--opponent">House plays dark pieces</p>
         <div class="board-wrap">
           <div class="board" id="board" role="grid" aria-label="Barroom Brawl board"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
         </div>
-        <div class="player-strip" id="player-strip"></div>
+        <p class="player-strip">You play light pieces</p>
       </div>
 
       <aside class="match-panel">
@@ -125,15 +125,6 @@ app.innerHTML = `
             <div>
               <span class="eyebrow">Five-by-five chess</span>
               <h1>Barroom Brawl</h1>
-            </div>
-            <span class="round-badge" id="formation-badge">—</span>
-          </div>
-
-          <div class="side-control" aria-label="Choose your army">
-            <span>You play</span>
-            <div class="segmented">
-              <button type="button" data-side="light" aria-pressed="true"><span>♕</span> Light</button>
-              <button type="button" data-side="dark" aria-pressed="false"><span>♝</span> Dark</button>
             </div>
           </div>
 
@@ -144,17 +135,7 @@ app.innerHTML = `
 
           <div class="match-actions">
             <button class="primary-button" id="new-game" type="button">New round <span aria-hidden="true">↻</span></button>
-            <button class="secondary-button" id="undo" type="button" disabled>Take back</button>
           </div>
-
-          <label class="engine-setting" for="engine-strength">
-            <span><strong>House engine</strong><small>Runs locally in your browser</small></span>
-            <select id="engine-strength">
-              <option value="quick">Quick</option>
-              <option value="steady" selected>Steady</option>
-              <option value="sharp">Sharp</option>
-            </select>
-          </label>
         </section>
 
         <section class="rules-card" id="rules-card" hidden>
@@ -181,13 +162,8 @@ app.innerHTML = `
 
 const boardElement = requireElement<HTMLDivElement>("board")
 const thinkingElement = requireElement<HTMLDivElement>("board-thinking")
-const opponentStrip = requireElement<HTMLDivElement>("opponent-strip")
-const playerStrip = requireElement<HTMLDivElement>("player-strip")
 const turnCallout = requireElement<HTMLDivElement>("turn-callout")
-const formationBadge = requireElement<HTMLSpanElement>("formation-badge")
-const undoButton = requireElement<HTMLButtonElement>("undo")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
-const strengthSelect = requireElement<HTMLSelectElement>("engine-strength")
 const rulesButton = requireElement<HTMLButtonElement>("rules-button")
 const rulesCard = requireElement<HTMLElement>("rules-card")
 const promotionDialog = requireElement<HTMLDialogElement>("promotion-dialog")
@@ -195,7 +171,7 @@ const promotionOptions = requireElement<HTMLDivElement>("promotion-options")
 
 const engine = new Worker(new URL("./engine.worker.ts", import.meta.url), { type: "module" })
 
-let humanColor: Color = "light"
+const humanColor: Color = "light"
 let position: Position
 let formationId = ""
 let selectedSquare: number | null = null
@@ -208,18 +184,7 @@ let engineRequestId = 0
 newGame()
 registerWebMcpTools()
 
-document.querySelectorAll<HTMLButtonElement>("[data-side]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const nextSide = button.dataset.side as Color
-    if (nextSide === humanColor) return
-    humanColor = nextSide
-    updateSideControls()
-    newGame()
-  })
-})
-
 newGameButton.addEventListener("click", newGame)
-undoButton.addEventListener("click", takeBack)
 rulesButton.addEventListener("click", () => {
   const willOpen = rulesCard.hidden
   rulesCard.hidden = !willOpen
@@ -271,17 +236,11 @@ function requestEngineMove(): void {
   thinking = true
   selectedSquare = null
   engineRequestId++
-  const preset = {
-    quick: { maxDepth: 4, timeMs: 90 },
-    steady: { maxDepth: 6, timeMs: 300 },
-    sharp: { maxDepth: 8, timeMs: 800 },
-  }[strengthSelect.value] ?? { maxDepth: 6, timeMs: 300 }
-
   engine.postMessage({
     type: "search",
     requestId: engineRequestId,
     position,
-    ...preset,
+    ...ENGINE_PRESET,
   })
   render()
 }
@@ -301,27 +260,6 @@ function playHumanMove(move: Move): void {
   applyGameMove(move)
   render()
   if (displayStatus().type === "ongoing") window.setTimeout(requestEngineMove, 260)
-}
-
-function takeBack(): void {
-  if (thinking) return
-
-  let target = -1
-  for (let index = snapshots.length - 2; index >= 0; index--) {
-    if (snapshots[index]!.turn === humanColor) {
-      target = index
-      break
-    }
-  }
-  if (target < 0) return
-
-  engineRequestId++
-  position = snapshots[target]!
-  snapshots = snapshots.slice(0, target + 1)
-  history = history.slice(0, target)
-  lastMove = history.at(-1)?.move ?? null
-  selectedSquare = null
-  render()
 }
 
 function handleSquareClick(square: number): void {
@@ -362,13 +300,10 @@ function showPromotionChoices(moves: Move[]): void {
 function render(errorMessage?: string): void {
   const status = displayStatus()
   renderBoard(status)
-  renderPlayerStrips()
   renderTurn(status, errorMessage)
 
-  formationBadge.textContent = `SET · ${formationId}`
   thinkingElement.classList.toggle("is-visible", thinking)
   thinkingElement.setAttribute("aria-hidden", String(!thinking))
-  undoButton.disabled = thinking || !canTakeBack()
 }
 
 function renderBoard(status: DisplayStatus): void {
@@ -405,40 +340,14 @@ function renderBoard(status: DisplayStatus): void {
     button.disabled = thinking || status.type !== "ongoing"
     button.addEventListener("click", () => handleSquareClick(square))
 
-    const showFile = humanColor === "light" ? rank === 0 : rank === 4
-    const showRank = humanColor === "light" ? file === 0 : file === 4
     button.innerHTML = `
                 ${piece ? `
                   <span class="piece piece--${piece.color}" data-envelope="${PIECE_ENVELOPE_GLYPH[piece.type]}" aria-hidden="true">${PIECE_GLYPH[piece.color][piece.type]}</span>
                 ` : ""}
       ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true">✦</span>' : ""}
-      ${showFile ? `<span class="coord coord--file">${FILES[file]}</span>` : ""}
-      ${showRank ? `<span class="coord coord--rank">${rank + 1}</span>` : ""}
     `
     boardElement.append(button)
   }
-}
-
-function renderPlayerStrips(): void {
-  const opponentColor = humanColor === "light" ? "dark" : "light"
-  opponentStrip.innerHTML = playerStripMarkup(opponentColor, true)
-  playerStrip.innerHTML = playerStripMarkup(humanColor, false)
-}
-
-function playerStripMarkup(color: Color, opponent: boolean): string {
-  const captured = history.filter((entry) => entry.captured?.color === color).map((entry) => entry.captured!)
-  const detail = opponent
-    ? thinking ? "Calculating…" : "House engine"
-    : "You"
-
-  return `
-    <span class="player-avatar player-avatar--${color}" aria-hidden="true">${PIECE_GLYPH[color].king}</span>
-    <span class="player-name"><strong>${capitalize(color)}</strong><small>${detail}</small></span>
-    <span class="captured-pieces" aria-label="${captured.length} captured pieces">
-      ${captured.map((piece) => PIECE_GLYPH[piece.color][piece.type]).join("")}
-    </span>
-    <span class="turn-indicator ${position.turn === color ? "is-active" : ""}" aria-label="${position.turn === color ? "Turn to move" : "Waiting"}"></span>
-  `
 }
 
 function renderTurn(status: DisplayStatus, errorMessage?: string): void {
@@ -497,14 +406,6 @@ function resultCopy(status: Exclude<DisplayStatus, { type: "ongoing" }>): { head
   }
 }
 
-function canTakeBack(): boolean {
-  if (snapshots.length < 2) return false
-  for (let index = snapshots.length - 2; index >= 0; index--) {
-    if (snapshots[index]!.turn === humanColor) return true
-  }
-  return false
-}
-
 function boardOrder(): number[] {
   const squares = Array.from({ length: 25 }, (_, index) => index)
   if (humanColor === "light") {
@@ -539,12 +440,6 @@ function requireElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id)
   if (!element) throw new Error(`Missing element: ${id}`)
   return element as T
-}
-
-function updateSideControls(): void {
-  document.querySelectorAll<HTMLButtonElement>("[data-side]").forEach((choice) => {
-    choice.setAttribute("aria-pressed", String(choice.dataset.side === humanColor))
-  })
 }
 
 function gameSnapshot(): Record<string, unknown> {
@@ -589,19 +484,10 @@ function registerWebMcpTools(): void {
   register({
       name: "start_barroom_brawl_game",
       title: "Start a Barroom Brawl game",
-      description: "Start a new randomized game with the human playing Light or Dark.",
-      inputSchema: {
-        type: "object",
-        properties: { side: { type: "string", enum: ["light", "dark"] } },
-        required: ["side"],
-        additionalProperties: false,
-      },
+      description: "Start a new randomized game with the human playing Light.",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: false, untrustedContentHint: false },
-      execute: (input: unknown) => {
-        const side = (input as { side?: unknown } | null)?.side
-        if (side !== "light" && side !== "dark") throw new Error("side must be light or dark")
-        humanColor = side
-        updateSideControls()
+      execute: () => {
         newGame()
         return gameSnapshot()
       },

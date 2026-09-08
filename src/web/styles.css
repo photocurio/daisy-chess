@@ -183,80 +183,19 @@ a:focus-visible {
 }
 
 .player-strip {
-  display: grid;
-  grid-template-columns: 34px auto minmax(0, 1fr) 10px;
-  align-items: center;
-  gap: 9px;
+  display: block;
   min-height: 44px;
   width: 100%;
-  padding: 5px 2px;
+  margin: 0;
+  padding: 14px 2px 8px;
+  color: #444444;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .player-strip--opponent {
+  padding: 8px 2px 14px;
   margin-bottom: 3px;
-}
-
-.player-avatar {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  border: 1px solid #bdbdbd;
-  border-radius: 50%;
-  color: var(--ink);
-  background: #ffffff;
-  font-family: "Chess Merida", sans-serif;
-  font-size: 1.4rem;
-}
-
-.player-avatar--dark {
-  color: #ffffff;
-  border-color: var(--ink);
-  background: var(--ink);
-}
-
-.player-name strong,
-.player-name small {
-  display: block;
-}
-
-.player-name strong {
-  font-size: 0.88rem;
-  font-weight: 800;
-  line-height: 1.05;
-}
-
-.player-name small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.1;
-}
-
-.captured-pieces {
-  min-width: 0;
-  min-height: 1.35rem;
-  overflow: hidden;
-  color: #444444;
-  font-family: "Chess Merida", sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: -0.18em;
-  text-align: right;
-  text-overflow: clip;
-  white-space: nowrap;
-}
-
-.turn-indicator {
-  width: 8px;
-  height: 8px;
-  border: 1px solid #a0a0a0;
-  border-radius: 50%;
-  background: #ffffff;
-}
-
-.turn-indicator.is-active {
-  border-color: var(--brand-red);
-  background: var(--brand-red);
 }
 
 .board-wrap {
@@ -404,28 +343,6 @@ a:focus-visible {
   }
 }
 
-.coord {
-  position: absolute;
-  z-index: 4;
-  color: rgba(17, 17, 17, 0.7);
-  font-size: clamp(0.62rem, 3cqi, 0.76rem);
-  font-weight: 800;
-}
-
-.square--dark .coord {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.coord--file {
-  right: 5px;
-  bottom: 3px;
-}
-
-.coord--rank {
-  top: 3px;
-  left: 5px;
-}
-
 .board-thinking {
   position: absolute;
   top: 10px;
@@ -493,9 +410,7 @@ a:focus-visible {
   border-top: 4px solid var(--brand-red);
 }
 
-.match-card-heading,
-.side-control,
-.engine-setting {
+.match-card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -524,64 +439,6 @@ p {
   font-weight: 900;
   letter-spacing: -0.035em;
   line-height: 1.05;
-}
-
-.round-badge {
-  max-width: 128px;
-  padding: 6px 8px;
-  overflow: hidden;
-  border: 1px solid #bdbdbd;
-  color: #3c3c3c;
-  background: var(--soft);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.side-control {
-  margin: 14px 0 12px;
-  padding: 11px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  color: #444444;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.segmented {
-  display: inline-grid;
-  grid-template-columns: 1fr 1fr;
-  min-width: 184px;
-  padding: 2px;
-  border: 1px solid #bdbdbd;
-  background: var(--soft);
-}
-
-.segmented button {
-  min-height: 40px;
-  padding: 7px 10px;
-  border: 0;
-  color: #565656;
-  background: transparent;
-  cursor: pointer;
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: none;
-}
-
-.segmented button[aria-pressed="true"] {
-  color: #ffffff;
-  background: var(--brand-red);
-}
-
-.segmented button span {
-  margin-right: 2px;
-  font-family: "Chess Merida", sans-serif;
-  font-size: 1rem;
 }
 
 .turn-callout {
@@ -625,9 +482,7 @@ p {
 }
 
 .turn-callout strong,
-.turn-callout small,
-.engine-setting strong,
-.engine-setting small {
+.turn-callout small {
   display: block;
 }
 
@@ -644,14 +499,12 @@ p {
 }
 
 .match-actions {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  display: block;
   margin-top: 14px;
 }
 
-.primary-button,
-.secondary-button {
+.primary-button {
+  width: 100%;
   min-height: 44px;
   border-radius: 0;
   cursor: pointer;
@@ -671,51 +524,6 @@ p {
 
 .primary-button:hover {
   background: var(--brand-red-dark);
-}
-
-.secondary-button {
-  padding: 0 14px;
-  border: 1px solid #aaaaaa;
-  color: var(--ink);
-  background: #ffffff;
-}
-
-.secondary-button:hover:not(:disabled) {
-  border-color: var(--ink);
-}
-
-.secondary-button:disabled {
-  color: #9b9b9b;
-  border-color: #d3d3d3;
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.engine-setting {
-  margin-top: 14px;
-  padding: 11px 12px;
-  background: var(--soft);
-}
-
-.engine-setting strong {
-  font-size: 0.76rem;
-}
-
-.engine-setting small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 0.68rem;
-}
-
-.engine-setting select {
-  min-height: 40px;
-  padding: 7px 28px 7px 9px;
-  border: 1px solid #999999;
-  border-radius: 0;
-  color: var(--ink);
-  background-color: #ffffff;
-  cursor: pointer;
-  font-size: 0.75rem;
 }
 
 .rules-card {
@@ -879,14 +687,6 @@ p {
     grid-template-columns: 1fr auto;
   }
 
-  .side-control {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .segmented {
-    width: 100%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
