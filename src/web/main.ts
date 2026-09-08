@@ -378,7 +378,7 @@ function renderBoard(status: DisplayStatus): void {
                 ${piece ? `
                   <span class="piece piece--${piece.color}" data-envelope="${PIECE_ENVELOPE_GLYPH[piece.type]}" aria-hidden="true">${PIECE_GLYPH[piece.color][piece.type]}</span>
                 ` : ""}
-      ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true">✦</span>' : ""}
+      ${square === CENTER_SQUARE ? '<span class="center-mark" aria-hidden="true"></span>' : ""}
     `
     boardElement.append(button)
     if (shouldAnimateLastMove && lastMove?.to === square) {
