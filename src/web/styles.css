@@ -240,16 +240,24 @@ a:focus-visible {
   z-index: 3;
   width: 17%;
   aspect-ratio: 1;
-  border: 2px solid rgba(255, 255, 255, 0.78);
+  border: 0;
   border-radius: 50%;
-  background: rgba(17, 17, 17, 0.62);
+  background: var(--ink);
   animation: legal-target-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .square.is-capture::after {
-  width: 72%;
-  border: clamp(3px, 1cqi, 6px) solid rgba(17, 17, 17, 0.68);
-  background: transparent;
+  top: 6%;
+  right: 6%;
+  display: grid;
+  width: 26%;
+  place-items: center;
+  color: #ffffff;
+  background: var(--ink);
+  content: "×";
+  font-size: clamp(0.72rem, 15cqi, 1rem);
+  font-weight: 900;
+  line-height: 1;
 }
 
 .square--center {
