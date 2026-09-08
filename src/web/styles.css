@@ -280,21 +280,18 @@ a:focus-visible {
 
 .center-mark {
   position: absolute;
-  width: 60%;
-  aspect-ratio: 1;
+  inset: 0;
   z-index: 1;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: #ffffff;
+  color: #df5965;
+  font-family: "Chess Merida", sans-serif;
+  font-size: 72cqi;
+  line-height: 1;
 }
 
-.center-mark::after {
-  width: 34%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--tile-red);
-  content: "";
+.center-mark::before {
+  content: "\E254";
 }
 
 .piece {
