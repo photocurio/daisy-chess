@@ -473,6 +473,10 @@ p {
   color: var(--brand-red-dark);
 }
 
+.turn-callout--event {
+  color: var(--brand-red);
+}
+
 .turn-callout--result {
   color: var(--ink);
 }
@@ -524,6 +528,11 @@ p {
   font-weight: 850;
 }
 
+.turn-callout--event strong {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
 .turn-callout--result strong {
   font-size: 1.35rem;
   font-weight: 900;
@@ -572,9 +581,9 @@ p {
 
 .game-action-link {
   display: inline-block;
-  padding: 4px 0;
+  padding: 8px 2px;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   font-weight: 700;
   text-decoration-color: #aaaaaa;
   text-underline-offset: 3px;

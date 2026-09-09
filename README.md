@@ -1,8 +1,8 @@
-# Food Fight Chess
+# Food Fight
 
 **Two uneven armies. One tiny board.**
 
-Food Fight Chess is an experimental asymmetric chess variant played on a 5×5 board. Light has a queen and three pawns; Dark has a rook, two bishops, and a knight. Both sides have a king.
+Food Fight is an experimental asymmetric chess variant played on a 5×5 board. Light has a queen and three pawns; Dark has a rook, two bishops, and a knight. Both sides have a king.
 
 A player wins by either checkmating the opposing king or safely moving their own king onto `c3`, the central square.
 
