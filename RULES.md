@@ -1,4 +1,4 @@
-# Barroom Brawl Rules
+# Food Fight Chess Rules
 
 Status: Working draft 0.1
 
@@ -13,7 +13,7 @@ Central-square victory is available throughout the game. The king may not enter 
 
 ## Board
 
-Barroom Brawl is played on a 5×5 board with files `a` through `e` and ranks `1` through `5`.
+Food Fight Chess is played on a 5×5 board with files `a` through `e` and ranks `1` through `5`.
 
 ## Starting armies
 
@@ -53,6 +53,7 @@ Unless stated otherwise, pieces move, capture, give check, and deliver checkmate
 
 - Stalemate is a draw.
 - A third repetition is a draw.
+- A player may offer the house a draw. The house accepts only when an exhaustive legal-continuation check proves that it has no possible route to checkmate or the center. An inconclusive check is declined.
 - Batch playtests use a configurable maximum game length as a safety limit; this is not yet a game rule.
 
 ## Decisions still required

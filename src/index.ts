@@ -1,4 +1,5 @@
 export * from "./board.js"
+export * from "./draw.js"
 export * from "./perft.js"
 export * from "./position.js"
 export * from "./rules.js"

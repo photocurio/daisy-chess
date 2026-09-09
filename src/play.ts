@@ -31,7 +31,7 @@ const formation = DARK_FORMATIONS[(options.seed >>> 0) % DARK_FORMATIONS.length]
 let position = createInitialPosition(formation.backRank)
 const repetitions = new Map([[positionKey(position), 1]])
 
-console.log("Barroom Brawl — provisional rules")
+console.log("Food Fight Chess — provisional rules")
 console.log(options.humanSide ? `You are ${options.humanSide}.` : "Engine self-play.")
 console.log(`Dark formation: ${formation.id}; seed: ${options.seed}`)
 

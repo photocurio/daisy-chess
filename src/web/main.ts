@@ -22,9 +22,14 @@ import {
   PieceType,
   Position,
   PromotionPiece,
+  opposite,
 } from "../types.js"
 
-type DisplayStatus = GameStatus | { type: "repetition" }
+type DisplayStatus = GameStatus
+  | { type: "repetition" }
+  | { type: "agreed-draw" }
+  | { type: "resignation"; winner: Color }
+type Difficulty = "easy" | "hard"
 
 interface HistoryEntry {
   color: Color
@@ -41,9 +46,10 @@ interface EngineResult {
 }
 
 interface EngineResponse {
-  type: "result" | "error"
+  type: "result" | "draw-offer" | "error"
   requestId: number
   result?: EngineResult
+  accepted?: boolean
   message?: string
 }
 
@@ -85,7 +91,10 @@ const PIECE_NAME: Record<PieceType, string> = {
 }
 
 const CENTER_SQUARE = 12
-const ENGINE_PRESET = { maxDepth: 6, timeMs: 300 }
+const ENGINE_PRESETS: Record<Difficulty, { maxDepth: number; timeMs: number }> = {
+  easy: { maxDepth: 2, timeMs: 80 },
+  hard: { maxDepth: 6, timeMs: 300 },
+}
 
 const app = document.querySelector<HTMLDivElement>("#app")
 if (!app) throw new Error("App mount point was not found")
@@ -94,17 +103,17 @@ app.innerHTML = `
   <main class="game-shell">
     <header class="masthead">
       <div class="game-title">
-        <strong><span>Bar</span>room <span>Brawl</span> Chess</strong>
+        <strong><span>Food</span> <span>Fight</span> Chess</strong>
       </div>
       <button class="icon-button" id="rules-button" type="button" aria-expanded="false" aria-controls="rules-card">
         <span aria-hidden="true">?</span><span class="button-label">How to play</span>
       </button>
     </header>
 
-    <section class="play-layout" aria-label="Barroom Brawl game">
+    <section class="play-layout" aria-label="Food Fight Chess game">
       <div class="board-stage">
         <div class="board-wrap">
-          <div class="board" id="board" role="grid" aria-label="Barroom Brawl board" aria-describedby="win-condition"></div>
+          <div class="board" id="board" role="grid" aria-label="Food Fight Chess board" aria-describedby="win-condition"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
@@ -115,7 +124,13 @@ app.innerHTML = `
       <aside class="match-panel">
         <section class="match-card">
           <div class="side-choice" id="side-choice">
-            <span class="eyebrow">New game</span>
+            <div class="new-game-heading">
+              <span class="eyebrow">New game</span>
+              <label class="hard-mode-option">
+                <input id="difficulty-toggle" type="checkbox" />
+                <span>Hard mode</span>
+              </label>
+            </div>
             <h2>Choose the light or dark pieces</h2>
             <div class="side-options">
               <button type="button" data-side-choice="light">Play light</button>
@@ -125,12 +140,13 @@ app.innerHTML = `
 
           <div class="game-controls" id="game-controls" hidden>
             <div class="turn-callout" id="turn-callout" role="status" aria-live="polite">
-              <span class="turn-pip"></span>
-              <div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>
+              <div><strong>Your move</strong></div>
             </div>
 
             <div class="match-actions">
-              <button class="primary-button" id="new-game" type="button">Resign and try again</button>
+              <a class="game-action-link" id="resign" href="#resign">Resign</a>
+              <a class="game-action-link" id="offer-draw" href="#offer-draw">Offer draw</a>
+              <button class="new-game-button" id="new-game" type="button" hidden>New game</button>
             </div>
           </div>
         </section>
@@ -160,9 +176,12 @@ app.innerHTML = `
 const boardElement = requireElement<HTMLDivElement>("board")
 const thinkingElement = requireElement<HTMLDivElement>("board-thinking")
 const turnCallout = requireElement<HTMLDivElement>("turn-callout")
+const resignLink = requireElement<HTMLAnchorElement>("resign")
+const offerDrawLink = requireElement<HTMLAnchorElement>("offer-draw")
 const newGameButton = requireElement<HTMLButtonElement>("new-game")
 const sideChoice = requireElement<HTMLDivElement>("side-choice")
 const gameControls = requireElement<HTMLDivElement>("game-controls")
+const difficultyToggle = requireElement<HTMLInputElement>("difficulty-toggle")
 const rulesButton = requireElement<HTMLButtonElement>("rules-button")
 const rulesCard = requireElement<HTMLElement>("rules-card")
 const promotionDialog = requireElement<HTMLDialogElement>("promotion-dialog")
@@ -181,10 +200,23 @@ let thinking = false
 let engineRequestId = 0
 let shouldAnimateLastMove = false
 let choosingSide = true
+let difficulty: Difficulty = "easy"
+let drawAgreed = false
+let resigned = false
+let eventNotice: string | null = null
+let consideringDraw = false
 
 showSideChoice()
 registerWebMcpTools()
 
+resignLink.addEventListener("click", (event) => {
+  event.preventDefault()
+  resignGame()
+})
+offerDrawLink.addEventListener("click", (event) => {
+  event.preventDefault()
+  offerDraw()
+})
 newGameButton.addEventListener("click", showSideChoice)
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-side-choice]")) {
   button.addEventListener("click", () => {
@@ -193,6 +225,9 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-side-ch
     startGame(side)
   })
 }
+difficultyToggle.addEventListener("change", () => {
+  difficulty = difficultyToggle.checked ? "hard" : "easy"
+})
 rulesButton.addEventListener("click", () => {
   const willOpen = rulesCard.hidden
   rulesCard.hidden = !willOpen
@@ -205,8 +240,21 @@ engine.addEventListener("message", (event: MessageEvent<EngineResponse>) => {
   if (response.requestId !== engineRequestId) return
 
   thinking = false
-  if (response.type === "error" || !response.result) {
+  consideringDraw = false
+  if (response.type === "error") {
     render(`Engine paused: ${response.message ?? "unknown error"}`)
+    return
+  }
+
+  if (response.type === "draw-offer") {
+    if (response.accepted) drawAgreed = true
+    else eventNotice = "Draw declined—your move"
+    render()
+    return
+  }
+
+  if (!response.result) {
+    render("Engine paused: no move was returned")
     return
   }
 
@@ -233,6 +281,10 @@ function newGame(): void {
   history = []
   snapshots = [position]
   thinking = false
+  consideringDraw = false
+  drawAgreed = false
+  resigned = false
+  eventNotice = null
   shouldAnimateLastMove = false
   render()
 
@@ -260,14 +312,47 @@ function requestEngineMove(): void {
   if (choosingSide || displayStatus().type !== "ongoing" || position.turn === humanColor) return
 
   thinking = true
+  consideringDraw = false
+  eventNotice = null
   selectedSquare = null
   engineRequestId++
   engine.postMessage({
     type: "search",
     requestId: engineRequestId,
     position,
-    ...ENGINE_PRESET,
+    ...ENGINE_PRESETS[difficulty],
   })
+  render()
+}
+
+function offerDraw(): void {
+  if (choosingSide || thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
+
+  thinking = true
+  consideringDraw = true
+  eventNotice = null
+  selectedSquare = null
+  engineRequestId++
+  engine.postMessage({
+    type: "draw-offer",
+    requestId: engineRequestId,
+    position,
+    houseColor: opposite(humanColor),
+    maxNodes: 25_000,
+    timeMs: 150,
+  })
+  render()
+}
+
+function resignGame(): void {
+  if (choosingSide || displayStatus().type !== "ongoing") return
+
+  engineRequestId++
+  thinking = false
+  consideringDraw = false
+  eventNotice = null
+  selectedSquare = null
+  resigned = true
   render()
 }
 
@@ -279,6 +364,7 @@ function applyGameMove(move: Move): void {
   snapshots.push(position)
   lastMove = move
   selectedSquare = null
+  eventNotice = null
   shouldAnimateLastMove = true
 }
 
@@ -291,6 +377,8 @@ function playHumanMove(move: Move): void {
 
 function handleSquareClick(square: number): void {
   if (choosingSide || thinking || position.turn !== humanColor || displayStatus().type !== "ongoing") return
+
+  eventNotice = null
 
   const legalMoves = generateLegalMoves(position)
   const chosenMoves = selectedSquare === null
@@ -330,7 +418,12 @@ function render(errorMessage?: string): void {
   renderTurn(status, errorMessage)
   sideChoice.hidden = !choosingSide
   gameControls.hidden = choosingSide
-  newGameButton.hidden = choosingSide || status.type !== "ongoing"
+  resignLink.hidden = choosingSide || status.type !== "ongoing"
+  offerDrawLink.hidden = choosingSide
+    || thinking
+    || status.type !== "ongoing"
+    || position.turn !== humanColor
+  newGameButton.hidden = choosingSide || status.type === "ongoing"
 
   thinkingElement.classList.toggle("is-visible", thinking)
   thinkingElement.setAttribute("aria-hidden", String(!thinking))
@@ -418,42 +511,51 @@ function renderTurn(status: DisplayStatus, errorMessage?: string): void {
 
   if (errorMessage) {
     turnCallout.classList.add("turn-callout--danger")
-    turnCallout.innerHTML = `<span class="turn-pip"></span><div><strong>Engine paused</strong><small>${errorMessage}</small></div>`
+    turnCallout.innerHTML = "<div><strong>Engine paused</strong></div>"
+    return
+  }
+
+  if (eventNotice) {
+    turnCallout.innerHTML = `<div><strong>${eventNotice}</strong></div>`
     return
   }
 
   if (status.type !== "ongoing") {
     turnCallout.classList.add("turn-callout--result")
-    const { heading, detail } = resultCopy(status)
+    const heading = resultCopy(status)
     const didLoseByCheckmate = status.type === "checkmate" && status.winner !== humanColor
-    const isCenterResult = status.type === "center"
+    const isDecisiveResult = status.type === "checkmate"
+      || status.type === "center"
+      || status.type === "resignation"
+    if (isDecisiveResult) turnCallout.classList.add("turn-callout--decisive")
     const italicClass = didLoseByCheckmate
       ? "result-heading--italic"
       : ""
-    const bullet = didLoseByCheckmate || isCenterResult
-      ? '<span class="turn-pip" aria-hidden="true"></span>'
-      : ""
-    turnCallout.innerHTML = `${bullet}<div><strong class="${italicClass}">${heading}</strong>${detail ? `<small>${detail}</small>` : ""}</div>`
+    turnCallout.innerHTML = `<div><strong class="${italicClass}">${heading}</strong></div>`
     return
   }
 
   if (thinking) {
-    turnCallout.classList.add("turn-callout--thinking")
-    turnCallout.innerHTML = `<span class="turn-pip"></span><div><strong>The house is thinking</strong><small>It usually takes less than a second.</small></div>`
+    turnCallout.innerHTML = consideringDraw
+      ? "<div><strong>The house is considering</strong></div>"
+      : "<div><strong>The house is thinking</strong></div>"
     return
   }
 
   if (position.turn === humanColor) {
     const checked = isInCheck(position, humanColor)
     turnCallout.innerHTML = checked
-      ? '<span class="turn-pip" aria-hidden="true"></span><div><strong class="result-heading--italic">Check</strong></div>'
-      : '<span class="turn-pip" aria-hidden="true"></span><div><strong>Your move</strong><small>Select a piece to see its legal moves.</small></div>'
+      ? '<div><strong class="result-heading--italic">Check</strong></div>'
+      : "<div><strong>Your move</strong></div>"
   } else {
-    turnCallout.innerHTML = `<span class="turn-pip"></span><div><strong>Engine’s move</strong><small>Waiting for the house.</small></div>`
+    turnCallout.innerHTML = "<div><strong>Engine’s move</strong></div>"
   }
 }
 
 function displayStatus(): DisplayStatus {
+  if (resigned) return { type: "resignation", winner: opposite(humanColor) }
+  if (drawAgreed) return { type: "agreed-draw" }
+
   const status = gameStatus(position)
   if (status.type !== "ongoing") return status
 
@@ -462,21 +564,16 @@ function displayStatus(): DisplayStatus {
   return repetitions >= 3 ? { type: "repetition" } : status
 }
 
-function resultCopy(status: Exclude<DisplayStatus, { type: "ongoing" }>): { heading: string; detail: string } {
-  if (status.type === "stalemate") return { heading: "Round drawn", detail: "No legal moves remain." }
-  if (status.type === "repetition") return { heading: "Round drawn", detail: "The position appeared three times." }
+function resultCopy(status: Exclude<DisplayStatus, { type: "ongoing" }>): string {
+  if (status.type === "resignation") return "You resigned—the house wins"
+  if (status.type === "agreed-draw") return "Draw agreed"
+  if (status.type === "stalemate" || status.type === "repetition") return "Round drawn"
 
   const didHumanWin = status.winner === humanColor
   if (status.type === "center") {
-    return {
-      heading: didHumanWin ? "Center claimed—you win" : "The house takes the center",
-      detail: `${capitalize(status.winner)} reached c3 safely.`,
-    }
+    return didHumanWin ? "Center claimed—you win" : "The house takes the center"
   }
-  return {
-    heading: didHumanWin ? "Checkmate—you win" : "Checkmate—the house wins.",
-    detail: "",
-  }
+  return didHumanWin ? "Checkmate—you win" : "Checkmate—the house wins."
 }
 
 function boardOrder(): number[] {
@@ -527,6 +624,7 @@ function gameSnapshot(): Record<string, unknown> {
       ? generateLegalMoves(position).map(moveToUci)
       : [],
     engineThinking: thinking,
+    difficulty,
     awaitingSideChoice: choosingSide,
   }
 }
@@ -536,7 +634,7 @@ function registerWebMcpTools(): void {
   if (!context?.registerTool) return
 
   const reportRegistrationError = (error: unknown): void => {
-    console.warn("Barroom Brawl browser tool registration failed", error)
+    console.warn("Food Fight Chess browser tool registration failed", error)
   }
 
   const register = (tool: ModelContextTool): void => {
@@ -549,7 +647,7 @@ function registerWebMcpTools(): void {
 
   register({
       name: "get_barroom_brawl_game",
-      title: "Read Barroom Brawl game",
+      title: "Read Food Fight Chess game",
       description: "Read the current game, move history, and legal moves without changing the board.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
@@ -557,7 +655,7 @@ function registerWebMcpTools(): void {
     })
   register({
       name: "start_barroom_brawl_game",
-      title: "Start a Barroom Brawl game",
+      title: "Start a Food Fight Chess game",
       description: "Start a new randomized game with the human playing Light or Dark.",
       inputSchema: {
         type: "object",
@@ -576,7 +674,7 @@ function registerWebMcpTools(): void {
     })
   register({
       name: "play_barroom_brawl_move",
-      title: "Play a Barroom Brawl move",
+      title: "Play a Food Fight Chess move",
       description: "Play one legal move for the human side using coordinate notation such as c2c3.",
       inputSchema: {
         type: "object",

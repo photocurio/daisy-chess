@@ -1,8 +1,8 @@
-# Barroom Brawl
+# Food Fight Chess
 
 **Two uneven armies. One tiny board.**
 
-Barroom Brawl is an experimental asymmetric chess variant played on a 5×5 board. Light has a queen and three pawns; Dark has a rook, two bishops, and a knight. Both sides have a king.
+Food Fight Chess is an experimental asymmetric chess variant played on a 5×5 board. Light has a queen and three pawns; Dark has a rook, two bishops, and a knight. Both sides have a king.
 
 A player wins by either checkmating the opposing king or safely moving their own king onto `c3`, the central square.
 
@@ -15,7 +15,7 @@ A player wins by either checkmating the opposing king or safely moving their own
 - Pieces otherwise move and give check as in orthodox chess.
 - There is no castling, en passant, or initial two-square pawn move.
 - Pawns may promote to a queen, rook, bishop, or knight.
-- Stalemate and threefold repetition are draws in the current prototype.
+- Stalemate, threefold repetition, and accepted draw offers are draws in the current prototype. The house accepts an offer only when it can prove that it has no possible winning continuation.
 
 One possible opening position is:
 
@@ -39,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Choose Light or Dark, click a piece, then click a highlighted destination. The dark formation is randomized for every new round.
+Leave Hard mode unchecked for an easier opponent, or enable it for the original engine strength. Then choose Light or Dark, click a piece, and click a highlighted destination. The dark formation is randomized for every new round. The easier opponent searches two plies ahead; Hard uses the original six-ply search settings.
 
 ## Play in the terminal
 

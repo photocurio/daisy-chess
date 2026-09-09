@@ -1,7 +1,8 @@
+import { assessWinPossibility } from "../draw.js"
 import { searchBestMove } from "../search.js"
-import { Position } from "../types.js"
+import { Color, Position } from "../types.js"
 
-interface EngineRequest {
+interface SearchRequest {
   type: "search"
   requestId: number
   position: Position
@@ -9,17 +10,38 @@ interface EngineRequest {
   timeMs: number
 }
 
-self.addEventListener("message", (event: MessageEvent<EngineRequest>) => {
-  if (event.data.type !== "search") return
+interface DrawOfferRequest {
+  type: "draw-offer"
+  requestId: number
+  position: Position
+  houseColor: Color
+  maxNodes: number
+  timeMs: number
+}
 
-  const { requestId, position, maxDepth, timeMs } = event.data
+type EngineRequest = SearchRequest | DrawOfferRequest
+
+self.addEventListener("message", (event: MessageEvent<EngineRequest>) => {
+  const request = event.data
+
+  const { requestId } = request
 
   try {
-    const result = searchBestMove(position, { maxDepth, timeMs })
+    if (request.type === "search") {
+      const { position, maxDepth, timeMs } = request
+      const result = searchBestMove(position, { maxDepth, timeMs })
+      self.postMessage({ type: "result", requestId, result })
+      return
+    }
+
+    const assessment = assessWinPossibility(request.position, request.houseColor, {
+      maxNodes: request.maxNodes,
+      timeMs: request.timeMs,
+    })
     self.postMessage({
-      type: "result",
+      type: "draw-offer",
       requestId,
-      result,
+      accepted: assessment === "impossible",
     })
   } catch (error) {
     self.postMessage({
