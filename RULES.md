@@ -1,4 +1,4 @@
-# Food Fight Rules
+# Daisy Chess Rules
 
 Status: Working draft 0.1
 
@@ -13,7 +13,7 @@ Central-square victory is available throughout the game. The king may not enter 
 
 ## Board
 
-Food Fight is played on a 5×5 board with files `a` through `e` and ranks `1` through `5`.
+Daisy Chess is played on a 5×5 board with files `a` through `e` and ranks `1` through `5`.
 
 ## Starting armies
 

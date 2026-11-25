@@ -110,10 +110,10 @@ app.innerHTML = `
       </button>
     </header>
 
-    <section class="play-layout" aria-label="Food Fight game">
+    <section class="play-layout" aria-label="Daisy Chess game">
       <div class="board-stage">
         <div class="board-wrap">
-          <div class="board" id="board" role="grid" aria-label="Food Fight board" aria-describedby="win-condition"></div>
+          <div class="board" id="board" role="grid" aria-label="Daisy Chess board" aria-describedby="win-condition"></div>
           <div class="board-thinking" id="board-thinking" aria-hidden="true">
             <span></span><span></span><span></span>
           </div>
@@ -635,7 +635,7 @@ function registerWebMcpTools(): void {
   if (!context?.registerTool) return
 
   const reportRegistrationError = (error: unknown): void => {
-    console.warn("Food Fight browser tool registration failed", error)
+    console.warn("Daisy Chess browser tool registration failed", error)
   }
 
   const register = (tool: ModelContextTool): void => {
@@ -647,16 +647,16 @@ function registerWebMcpTools(): void {
   }
 
   register({
-      name: "get_food_fight_game",
-      title: "Read Food Fight game",
+      name: "get_daisy_chess_game",
+      title: "Read Daisy Chess game",
       description: "Read the current game, move history, and legal moves without changing the board.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: () => gameSnapshot(),
     })
   register({
-      name: "start_food_fight_game",
-      title: "Start a Food Fight game",
+      name: "start_daisy_chess_game",
+      title: "Start a Daisy Chess game",
       description: "Start a new randomized game with the human playing Light or Dark.",
       inputSchema: {
         type: "object",
@@ -674,8 +674,8 @@ function registerWebMcpTools(): void {
       },
     })
   register({
-      name: "play_food_fight_move",
-      title: "Play a Food Fight move",
+      name: "play_daisy_chess_move",
+      title: "Play a Daisy Chess move",
       description: "Play one legal move for the human side using coordinate notation such as c2c3.",
       inputSchema: {
         type: "object",
